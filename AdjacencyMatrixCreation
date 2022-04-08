@@ -1,6 +1,10 @@
+close all
+clear
+clc
+
 %% SETTING PARAMETERS
 
-StarSample=100;
+StarSample=5000;
 x=1;
 SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
 
@@ -17,6 +21,7 @@ dist=0; %We initialize variables
 %% BUILDING ADJACENCY MATRIX
 
 Adj=zeros(StarSample,StarSample); % in this way diagonal elements are already zero
+linkNumb=0;
 
 for c=1:StarSample %StarSample is a dummy number
     for i=c+1:StarSample 
@@ -26,6 +31,7 @@ for c=1:StarSample %StarSample is a dummy number
             if dist<SampleLength  % samplelenght is the square of the sample lenght
                 Adj(c,i)=1;
                 Adj(i,c)=1;
+                linkNumb=linkNumb+1;
             end
         end
     end
@@ -36,10 +42,24 @@ G=graph(Adj);
 
 %% CENTRALITY
 
-Degree = centrality(G,'degree')
-Closeness = centrality(G, 'closeness')
-Betweennes = centrality(G, 'betweenness')
-Page_rank = centrality(G, 'pagerank')
+Degree = centrality(G,'degree');
+Closeness = centrality(G, 'closeness');
+Betweennes = centrality(G, 'betweenness');
+Page_rank = centrality(G, 'pagerank');
+
+%% RANDOM MATRIX
+
+rng('shuffle');
+ii = randi(StarSample,linkNumb,2); %Creates a matrix nodeNumbxnodeNumb of values between 1 and StarSample
+RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
+RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
+RandAdj = RandAdj | RandAdj';
+RanndG=graph(RandAdj);
+
+ranDegree = centrality(RanndG,'degree');
+ranCloseness = centrality(RanndG, 'closeness');
+ranBetweennes = centrality(RanndG, 'betweenness');
+ranPage_rank = centrality(RanndG, 'pagerank');
 
 
 
