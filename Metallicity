@@ -6,7 +6,7 @@ clc
 
 StarSample=10078;
 x=1;
-SampleLength=(200*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
+SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
 
 
 %% READING DATA
