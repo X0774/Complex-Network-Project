@@ -1,0 +1,79 @@
+close all
+clear
+clc
+
+%% SETTING PARAMETERS
+
+StarSample=10078;
+x=1;
+SampleLength=(200*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
+
+
+%% READING DATA
+
+data = readtable('(Dietz+, 2020) Metallicity Gradients in Dwarves');
+%disp(data(1:5,18:20)); % check - in the database xyz are 18,19,20 column
+
+A=table2array(data(1:StarSample,[2,3,4]));
+%scatter3(A(:,1),A(:,2),A(:,3));
+
+distX=0; %We initialize variables
+distY=0;
+distZ=0;
+dist=0;
+%% BUILDING ADJACENCY MATRIX
+
+Adj=zeros(StarSample,StarSample); % in this way diagonal elements are already zero
+linkNumb=0;
+
+for c=1:StarSample %StarSample is a dummy number
+    for i=c+1:StarSample 
+            %X=A(i,3)*sin(A(i,1))*cos(A(i,2))
+            %Y=A(i,3)*sin(A(i,1))*sin(A(i,2))
+            %Z=A(i,3)*cos(A(i,1))
+            distX=(A(i,3)*sin(A(i,1))*cos(A(i,2))-A(c,3)*sin(A(c,1))*cos(A(c,2)))^2; %dist is the square of distance between two stars
+            distY=(A(i,3)*sin(A(i,1))*sin(A(i,2))-A(c,3)*sin(A(c,1))*sin(A(c,2)))^2;
+            distZ=(A(i,3)*cos(A(i,1))-A(c,3)*cos(A(c,1)))^2;
+            dist=distX+distY+distZ;
+            if dist<SampleLength  % samplelenght is the square of the sample lenght
+                Adj(c,i)=1;
+                Adj(i,c)=1;
+                linkNumb=linkNumb+1;
+            end
+    end
+end
+
+G=graph(Adj);
+%plot(G);
+
+%% CENTRALITY
+
+Degree = centrality(G,'degree');
+Closeness = centrality(G, 'closeness');
+Betweennes = centrality(G, 'betweenness');
+Page_rank = centrality(G, 'pagerank');
+
+%% RANDOM MATRIX
+
+rng('shuffle');
+ii = randi(StarSample,linkNumb,2); %Creates a matrix linkNumbxlinkNumb of values between 1 and StarSample
+RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
+RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
+RandAdj = RandAdj | RandAdj';
+RanndG=graph(RandAdj);
+
+ranDegree = centrality(RanndG,'degree');
+ranCloseness = centrality(RanndG, 'closeness');
+ranBetweennes = centrality(RanndG, 'betweenness');
+ranPage_rank = centrality(RanndG, 'pagerank');
+
+%% Analysis on Metallicity
+
+Met=table2array(data(1:StarSample,1));
+
+%% LAPLACIAN CREATED HERE
+%{
+K = diag(sum(Adj));
+L = K-Adj;
+[Vec Val] = eig(L);
+%}
