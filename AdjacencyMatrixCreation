@@ -4,7 +4,7 @@ clc
 
 %% SETTING PARAMETERS
 
-StarSample=5000;
+StarSample=10000;
 x=1;
 SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
 
@@ -50,7 +50,7 @@ Page_rank = centrality(G, 'pagerank');
 %% RANDOM MATRIX
 
 rng('shuffle');
-ii = randi(StarSample,linkNumb,2); %Creates a matrix nodeNumbxnodeNumb of values between 1 and StarSample
+ii = randi(StarSample,linkNumb,2);
 RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
 RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
 RandAdj = RandAdj | RandAdj';
@@ -61,7 +61,10 @@ ranCloseness = centrality(RanndG, 'closeness');
 ranBetweennes = centrality(RanndG, 'betweenness');
 ranPage_rank = centrality(RanndG, 'pagerank');
 
+%%
 
+magnitudes=table2array(data(1:StarSample,15));
+colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
 
 %% LAPLACIAN CREATED HERE
 %{
