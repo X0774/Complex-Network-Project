@@ -70,6 +70,25 @@ ranPage_rank = centrality(RanndG, 'pagerank');
 %% Analysis on Metallicity
 
 Met=table2array(data(1:StarSample,1));
+corrDegree=corrcoef(Degree,Met);
+corrBetweennes=corrcoef(Betweennes,Met);
+corrCloseness=corrcoef(Closeness,Met);
+corrPagerank=corrcoef(Page_rank,Met);
+
+rancorrDegree=corrcoef(ranDegree,Met);
+rancorrBetweennes=corrcoef(ranBetweennes,Met);
+rancorrCloseness=corrcoef(ranCloseness,Met);
+rancorrPagerank=corrcoef(ranPage_rank,Met);
+
+histogram(Degree); %We want to observe how the stars are distributed
+avDegree=mean(Degree); 
+
+%% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
+
+cn = diag(Adj*triu(Adj)*Adj); %Number of Triangles
+c = zeros(size(Degree));
+c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
+acc = mean(c(Degree > 1)); %average clustering coefficient
 
 %% LAPLACIAN CREATED HERE
 %{
