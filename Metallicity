@@ -5,7 +5,7 @@ clc
 %% SETTING PARAMETERS
 
 StarSample=10078;
-x=1;
+x=0.8;
 SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
 
 
@@ -80,8 +80,19 @@ rancorrBetweennes=corrcoef(ranBetweennes,Met);
 rancorrCloseness=corrcoef(ranCloseness,Met);
 rancorrPagerank=corrcoef(ranPage_rank,Met);
 
+figure
 histogram(Degree); %We want to observe how the stars are distributed
-avDegree=mean(Degree); 
+figure
+histogram(ranDegree);
+avDegree=mean(Degree);
+
+figure
+plot(Degree,Betweennes,'markersize',18)
+figure
+plot(ranDegree,ranBetweennes,'markersize',18)
+
+ 
+
 
 %% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
 
