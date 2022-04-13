@@ -2,11 +2,11 @@ close all
 clear
 clc
 
-%% SETTING PARAMETERS
+%% SETTING PARAmagERS
 
 StarSample=10000;
-x=1;
-SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
+x=0.8;
+SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diamager, 0.3 is a parsec conversion, x a scaling factor
 
 %% READING DATA
 
@@ -61,10 +61,40 @@ ranCloseness = centrality(RanndG, 'closeness');
 ranBetweennes = centrality(RanndG, 'betweenness');
 ranPage_rank = centrality(RanndG, 'pagerank');
 
-%%
+%% Analysis on magnitudes
 
-magnitudes=table2array(data(1:StarSample,15));
+mag=table2array(data(1:StarSample,15));
+corrDegree=corrcoef(Degree,mag);
+corrBetweennes=corrcoef(Betweennes,mag);
+corrCloseness=corrcoef(Closeness,mag);
+corrPagerank=corrcoef(Page_rank,mag);
+
+rancorrDegree=corrcoef(ranDegree,mag);
+rancorrBetweennes=corrcoef(ranBetweennes,mag);
+rancorrCloseness=corrcoef(ranCloseness,mag);
+rancorrPagerank=corrcoef(ranPage_rank,mag);
+
+figure
+histogram(Degree); %We want to observe how the stars are distributed
+figure
+histogram(ranDegree);
+avDegree=mean(Degree);
+
+figure
+plot(Degree,Betweennes,'markersize',18)
+figure
+plot(ranDegree,ranBetweennes,'markersize',18)
+
 colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
+
+%% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
+
+cn = diag(Adj*triu(Adj)*Adj); %Number of Triangles
+c = zeros(size(Degree));
+c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
+acc = mean(c(Degree > 1)); %average clustering coefficient
+
+
 
 %% LAPLACIAN CREATED HERE
 %{
