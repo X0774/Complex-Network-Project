@@ -5,16 +5,15 @@ clc
 %% SETTING PARAMETERS
 
 StarSample=10078;
-x=0.8;
-SampleLength=(100*x*0.3)^2; %the idea is that a big cloud has 100 LY diameter, 0.3 is a parsec conversion, x a scaling factor
+x=0.4;
+SampleLength=(100*x*0.3)^2; %datas are in kpc, so this distance will be 100*x kpc converted in ly by x
 
 
 %% READING DATA
 
 data = readtable('(Dietz+, 2020) Metallicity Gradients in Dwarves');
-%disp(data(1:5,18:20)); % check - in the database xyz are 18,19,20 column
 
-A=table2array(data(1:StarSample,[2,3,4]));
+A=table2array(data(1:StarSample,[1,2,6])); %,Ra,De,Dist=Azimuth,90-polar,Radius
 %scatter3(A(:,1),A(:,2),A(:,3));
 
 distX=0; %We initialize variables
@@ -69,7 +68,7 @@ ranPage_rank = centrality(RanndG, 'pagerank');
 
 %% Analysis on Metallicity
 
-Met=table2array(data(1:StarSample,1));
+Met=table2array(data(1:StarSample,3));
 corrDegree=corrcoef(Degree,Met);
 corrBetweennes=corrcoef(Betweennes,Met);
 corrCloseness=corrcoef(Closeness,Met);
