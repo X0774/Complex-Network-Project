@@ -2,7 +2,7 @@ close all
 clear
 clc
 
-%% SETTING PARAmagERS
+%% SETTING PARAMETRS
 
 StarSample=10000;
 x=0.8;
