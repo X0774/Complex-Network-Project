@@ -4,10 +4,9 @@ clc
 
 %% SETTING PARAMETERS
 
-StarSample=10078;
-x=0.4;
-SampleLength=(100*x*0.3)^2; %datas are in kpc, so this distance will be 100*x kpc converted in ly by x
-
+StarSample=10077;
+x=1;
+SampleLength=(100*x*0.3)^2;
 
 %% READING DATA
 
@@ -33,12 +32,13 @@ for c=1:StarSample %StarSample is a dummy number
             distX=(A(i,3)*sind(A(i,1))*cosd(90-A(i,2))-A(c,3)*sind(A(c,1))*cosd(90-A(c,2)))^2; %dist is the square of distance between two stars
             distY=(A(i,3)*sind(A(i,1))*sind(90-A(i,2))-A(c,3)*sind(A(c,1))*sind(90-A(c,2)))^2;
             distZ=(A(i,3)*cosd(A(i,1))-A(c,3)*cosd(A(c,1)))^2;
-            dist=distX+distY+distZ;
+            dist=1000*(distX+distY+distZ); %We want pc, not kpc
             if dist<SampleLength  % samplelenght is the square of the sample lenght
                 Adj(c,i)=1;
                 Adj(i,c)=1;
                 linkNumb=linkNumb+1;
-            end
+            end 
+            disp(c);
     end
 end
 
