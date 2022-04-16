@@ -1,0 +1,115 @@
+close all
+clear
+clc
+
+%% SETTING PARAmagERS
+
+StarSample=10000;
+%I'm trying to use a different convention than the x one, everything is in
+%pc
+SampleLength=(20)^2;
+
+%% READING DATA
+
+data = readtable('StarHorse2.txt');
+%disp(data(1:5,18:20)); % check - in the database xyz are 18,19,20 column
+
+A=table2array(data(1:StarSample,6:8));
+%scatter3(A(:,1),A(:,2),A(:,3));
+
+dist=0; %We initialize variables
+
+%% BUILDING ADJACENCY MATRIX
+
+Adj=zeros(StarSample,StarSample); % in this way diagonal elements are already zero
+linkNumb=0;
+
+for c=1:StarSample %StarSample is a dummy number
+    for i=c+1:StarSample 
+        dist=0;
+        for k=[1,3]
+            dist=dist+(A(c,k)-A(i,k))^2; %dist is the square of distance between two stars; 10e6 because we go from kpc to pc
+            if 10^6*dist<SampleLength  % samplelenght is the square of the sample lenght
+                Adj(c,i)=1;
+                Adj(i,c)=1;
+                linkNumb=linkNumb+1;
+                disp(c);
+            end
+        end
+    end
+end
+
+G=graph(Adj);
+%plot(G);
+
+%% CENTRALITY
+
+Degree = centrality(G,'degree');
+Closeness = centrality(G, 'closeness');
+Betweennes = centrality(G, 'betweenness');
+Page_rank = centrality(G, 'pagerank');
+
+%% RANDOM MATRIX
+
+rng('shuffle');
+ii = randi(StarSample,linkNumb,2);
+RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
+RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
+RandAdj = RandAdj | RandAdj';
+RanndG=graph(RandAdj);
+
+ranDegree = centrality(RanndG,'degree');
+ranCloseness = centrality(RanndG, 'closeness');
+ranBetweennes = centrality(RanndG, 'betweenness');
+ranPage_rank = centrality(RanndG, 'pagerank');
+
+%% Analysis on magnitudes
+param=table2array(data(1:StarSample,1:5));
+corrDegree=zeros(5,2,2);
+corrBetweennes=zeros(5,2,2);
+corrCloseness=zeros(5,2,2);
+corrPagerank=zeros(5,2,2);
+rancorrDegree=zeros(5,2,2);
+rancorrBetweennes=zeros(5,2,2);
+rancorrCloseness=zeros(5,2,2);
+rancorrPagerank=zeros(5,2,2);
+for c=1:5
+    corrDegree(c,:,:)=corrcoef(Degree,param(:,c));
+    corrBetweennes(c,:,:)=corrcoef(Betweennes,param(:,c));
+    corrCloseness(c,:,:)=corrcoef(Closeness,param(:,c));
+    corrPagerank(c,:,:)=corrcoef(Page_rank,param(:,c));
+
+    rancorrDegree(c,:,:)=corrcoef(ranDegree,param(:,c));
+    rancorrBetweennes(c,:,:)=corrcoef(ranBetweennes,param(:,c));
+    rancorrCloseness(c,:,:)=corrcoef(ranCloseness,param(:,c));
+    rancorrPagerank(c,:,:)=corrcoef(ranPage_rank,param(:,c));
+end
+
+figure
+histogram(Degree); %We want to observe how the stars are distributed
+figure
+histogram(ranDegree);
+avDegree=mean(Degree);
+
+figure
+plot(Degree,Betweennes,'markersize',18)
+figure
+plot(ranDegree,ranBetweennes,'markersize',18)
+
+colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
+
+%% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
+
+cn = diag(Adj*triu(Adj)*Adj); %Number of Triangles
+c = zeros(size(Degree));
+c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
+acc = mean(c(Degree > 1)); %average clustering coefficient
+
+
+
+%% LAPLACIAN CREATED HERE
+%{
+K = diag(sum(Adj));
+L = K-Adj;
+[Vec Val] = eig(L);
+%}
