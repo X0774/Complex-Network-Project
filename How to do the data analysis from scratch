@@ -1,0 +1,11 @@
+https://ui.adsabs.harvard.edu/abs/2016yCat..35880014T/abstract        ----->    Friends of Friends Galaxy Group (2016)
+https://ui.adsabs.harvard.edu/abs/2022yCat.1354....0A/abstract        ----->    StarHorse2, Gaia EDR3 (2022)
+https://ui.adsabs.harvard.edu/abs/2021yCat..18940034D/abstract        ----->    Metallicity Halo Milky Way (2020)
+
+http://www.astronexus.com/hyg    ---->    Hypparcos-Yale-Gliese database of Nearby Stars
+
+For the downloads of the first three you will need to use the website "https://vizier.u-strasbg.fr/", which contains a useful repository of astrophysical datasets.
+You should then decide a sample length, that you can tweak using a parameter x, which can be decided a posteriori using the script "Misure di centralità al variare di x".
+After the choice of a useful x from a physics point of view has been made you can then start the data analysis, examples are shown in the repository with the scripts given.
+
+The scripts also contain a small code useful if you want to build the laplacian of the network you are considering.
