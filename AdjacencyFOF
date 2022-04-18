@@ -1,0 +1,119 @@
+close all
+clear
+clc
+
+%% SETTING PARAMETERS
+
+StarSample=4000;
+x=1;
+SampleLength=(5)^2; %We use 1.2 Mpc as linking distance
+
+%% READING DATA
+
+data = readtable('FriendsOfFriends.txt');
+
+A=table2array(data(1:StarSample,[3,4,6])); %,Ra,De,Dist=Azimuth,90-polar,Radius
+%scatter3(A(:,1),A(:,2),A(:,3));
+
+distX=0; %We initialize variables
+distY=0;
+distZ=0;
+dist=0;
+%% BUILDING ADJACENCY MATRIX
+
+Adj=zeros(StarSample,StarSample); % in this way diagonal elements are already zero
+linkNumb=0;
+
+for c=1:StarSample %StarSample is a dummy number
+    for i=c+1:StarSample 
+            %X=A(i,3)*sin(A(i,1))*cos(A(i,2))
+            %Y=A(i,3)*sin(A(i,1))*sin(A(i,2))
+            %Z=A(i,3)*cos(A(i,1))
+            distX=(A(i,3)*sind(A(i,1))*cosd(90-A(i,2))-A(c,3)*sind(A(c,1))*cosd(90-A(c,2)))^2; %dist is the square of distance between two stars
+            distY=(A(i,3)*sind(A(i,1))*sind(90-A(i,2))-A(c,3)*sind(A(c,1))*sind(90-A(c,2)))^2;
+            distZ=(A(i,3)*cosd(A(i,1))-A(c,3)*cosd(A(c,1)))^2;
+            dist=(distX+distY+distZ); %We want pc, not kpc
+            if dist<SampleLength  % samplelenght is the square of the sample lenght
+                Adj(c,i)=1;
+                Adj(i,c)=1;
+                linkNumb=linkNumb+1;
+            end 
+            disp(c);
+    end
+end
+
+G=graph(Adj);
+%plot(G);
+
+%% CENTRALITY
+
+Degree = centrality(G,'degree');
+Closeness = centrality(G, 'closeness');
+Betweennes = centrality(G, 'betweenness');
+Page_rank = centrality(G, 'pagerank');
+ 
+%% RANDOM MATRIX
+
+rng('shuffle');
+ii = randi(StarSample,linkNumb,2); %Creates a matrix linkNumbxlinkNumb of values between 1 and StarSample
+RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
+RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
+RandAdj = RandAdj | RandAdj';
+RanndG=graph(RandAdj);
+
+ranDegree = centrality(RanndG,'degree');
+ranCloseness = centrality(RanndG, 'closeness');
+ranBetweennes = centrality(RanndG, 'betweenness');
+ranPage_rank = centrality(RanndG, 'pagerank');
+
+%% Analysis on Metallicity
+
+%% Analysis on magnitudes
+param=table2array(data(1:StarSample,7:10));
+corrDegree=zeros(4,2,2);
+corrBetweennes=zeros(4,2,2);
+corrCloseness=zeros(4,2,2);
+corrPagerank=zeros(4,2,2);
+rancorrDegree=zeros(4,2,2);
+rancorrBetweennes=zeros(4,2,2);
+rancorrCloseness=zeros(4,2,2);
+rancorrPagerank=zeros(4,2,2);
+for c=1:4
+    corrDegree(c,:,:)=corrcoef(Degree,param(:,c));
+    corrBetweennes(c,:,:)=corrcoef(Betweennes,param(:,c));
+    corrCloseness(c,:,:)=corrcoef(Closeness,param(:,c));
+    corrPagerank(c,:,:)=corrcoef(Page_rank,param(:,c));
+
+    rancorrDegree(c,:,:)=corrcoef(ranDegree,param(:,c));
+    rancorrBetweennes(c,:,:)=corrcoef(ranBetweennes,param(:,c));
+    rancorrCloseness(c,:,:)=corrcoef(ranCloseness,param(:,c));
+    rancorrPagerank(c,:,:)=corrcoef(ranPage_rank,param(:,c));
+end
+
+figure
+histogram(Degree); %We want to observe how the stars are distributed
+figure
+histogram(ranDegree);
+avDegree=mean(Degree);
+
+figure
+plot(Degree,Betweennes,'markersize',18)
+figure
+plot(ranDegree,ranBetweennes,'markersize',18)
+
+ 
+
+
+%% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
+
+cn = diag(Adj*triu(Adj)*Adj); %Number of Triangles
+c = zeros(size(Degree));
+c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
+acc = mean(c(Degree > 1)); %average clustering coefficient
+
+%% LAPLACIAN CREATED HERE
+%{
+K = diag(sum(Adj));
+L = K-Adj;
+[Vec Val] = eig(L);
+%}
