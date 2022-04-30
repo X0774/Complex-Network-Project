@@ -105,6 +105,9 @@ c = zeros(size(Degree));
 c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
 acc = mean(c(Degree > 1)); %average clustering coefficient
 
+figure
+plot(cn,Degree);
+
 %% Assortativity
 meanDegrees=zeros(StarSample,1);
 num=0;
