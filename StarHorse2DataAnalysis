@@ -4,10 +4,10 @@ clc
 
 %% SETTING PARAmagERS
 
-StarSample=10000;
+StarSample=2000;
 %I'm trying to use a different convention than the x one, everything is in
 %pc
-SampleLength=(20)^2;
+SampleLength=(10)^2;
 
 %% READING DATA
 
@@ -96,7 +96,7 @@ plot(Degree,Betweennes,'markersize',18)
 figure
 plot(ranDegree,ranBetweennes,'markersize',18)
 
-colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
+%colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
 
 %% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
 
@@ -105,7 +105,28 @@ c = zeros(size(Degree));
 c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
 acc = mean(c(Degree > 1)); %average clustering coefficient
 
+%% Assortativity
+meanDegrees=zeros(StarSample,1);
+num=0;
+sumDegree=0;
+for i=1:StarSample
+    for c=1:StarSample
+        if (Adj(i,c)==1 && not(c == i))
+            sumDegree=sumDegree+Degree(c);
+            num=num+1;            
+        end
+    end
+    if num==0
+        meanDegrees(i)=0;
+    else
+        meanDegrees(i)=sumDegree/num;
+    end
+    num=0;
+    sumDegree=0;
+end
 
+figure
+plot(meanDegrees,Degree);
 
 %% LAPLACIAN CREATED HERE
 %{
