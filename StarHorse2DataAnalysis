@@ -4,7 +4,7 @@ clc
 
 %% SETTING PARAmagERS
 
-StarSample=2000;
+StarSample=10000;
 %I'm trying to use a different convention than the x one, everything is in
 %pc
 SampleLength=(10)^2;
@@ -13,6 +13,7 @@ SampleLength=(10)^2;
 
 data = readtable('StarHorse2.txt');
 %disp(data(1:5,18:20)); % check - in the database xyz are 18,19,20 column
+%sortrows(data,3);
 
 A=table2array(data(1:StarSample,6:8));
 %scatter3(A(:,1),A(:,2),A(:,3));
@@ -131,9 +132,21 @@ end
 figure
 plot(meanDegrees,Degree);
 
+%% EMBEDDING HERE
+%d = squareform(1-pdist(Adj,'cosine')) + eye(size(Adj,1)); DON'T USE THIS
+%d=distances(G);
+disp("Siamo qui");
+Y=cmdscale(Adj,3); %We want three dimensional coordinates in order to compare them with XYZ coordinates!
+%V=dfsearch(G,1);
+%plot(Y);
+scatter3(A(:,1),A(:,2),A(:,3));
+
 %% LAPLACIAN CREATED HERE
-%{
-K = diag(sum(Adj));
-L = K-Adj;
-[Vec Val] = eig(L);
-%}
+%K = diag(sum(Adj));
+%L = K-Adj;
+%L=laplacian(G);
+%[Vec Val] = eigs(L);
+%[VecAdj Val] = eigs(Adj);
+%w=Vec(:,2);
+%Feature1=eig(Adj);
+%idx = spectralcluster(Adj,length(Val));
