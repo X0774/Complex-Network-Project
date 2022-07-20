@@ -1,0 +1,137 @@
+close all
+clear
+clc
+
+%% SETTING PARAMETRS
+
+StarSample=20000;
+x=0.8;
+SampleLength=(4)^2; %the idea is that a big cloud has 100 LY diamager, 0.3 is a parsec conversion, x a scaling factor
+
+%% READING DATA
+
+data = readtable('hygdata_v3.csv');
+%disp(data(1:5,18:20)); % check - in the database xyz are 18,19,20 column
+
+A=table2array(data(1:StarSample,18:20));
+
+dist=0; %We initialize variables
+
+%% BUILDING ADJACENCY MATRIX
+
+Adj=zeros(StarSample,StarSample); % in this way diagonal elements are already zero
+linkNumb=0;
+
+for c=1:StarSample %StarSample is a dummy number
+    for i=c+1:StarSample 
+        dist=0;
+        for k=[1,3]
+            dist=dist+(A(c,k)-A(i,k))^2; %dist is the square of distance between two stars
+            if dist<SampleLength  % samplelenght is the square of the sample lenght
+                Adj(c,i)=1;
+                Adj(i,c)=1;
+                linkNumb=linkNumb+1;
+            end
+        end
+    end
+end
+
+G=graph(Adj);
+%plot(G);
+
+%% CENTRALITY
+
+Degree = centrality(G,'degree');
+Closeness = centrality(G, 'closeness');
+Betweennes = centrality(G, 'betweenness');
+Page_rank = centrality(G, 'pagerank');
+
+%% RANDOM MATRIX
+
+rng('shuffle');
+ii = randi(StarSample,linkNumb,2);
+RandAdj = sparse(ii(:,1),ii(:,2),1,StarSample,StarSample);
+RandAdj = RandAdj-sparse(diag(diag(RandAdj)));
+RandAdj = RandAdj | RandAdj';
+RanndG=graph(RandAdj);
+
+ranDegree = centrality(RanndG,'degree');
+ranCloseness = centrality(RanndG, 'closeness');
+ranBetweennes = centrality(RanndG, 'betweenness');
+ranPage_rank = centrality(RanndG, 'pagerank');
+
+%% Analysis on magnitudes
+
+mag=table2array(data(1:StarSample,15));
+corrDegree=corrcoef(Degree,mag);
+corrBetweennes=corrcoef(Betweennes,mag);
+corrCloseness=corrcoef(Closeness,mag);
+corrPagerank=corrcoef(Page_rank,mag);
+
+rancorrDegree=corrcoef(ranDegree,mag);
+rancorrBetweennes=corrcoef(ranBetweennes,mag);
+rancorrCloseness=corrcoef(ranCloseness,mag);
+rancorrPagerank=corrcoef(ranPage_rank,mag);
+
+figure
+histogram(Degree); %We want to observe how the stars are distributed
+figure
+histogram(ranDegree);
+avDegree=mean(Degree);
+
+figure
+plot(Degree,Betweennes,'markersize',18)
+figure
+plot(ranDegree,ranBetweennes,'markersize',18)
+
+colorindexes=table2array(data(1:StarSample,17)); %not the most useful variable if we have magnitudes
+
+%% Clustering Coefficient (Thanks Gregorio Alanis-Lobato, 2014)
+
+cn = diag(Adj*triu(Adj)*Adj); %Number of Triangles
+c = zeros(size(Degree));
+c(Degree > 1) = 2 * cn(Degree > 1) ./ (Degree(Degree > 1).*(Degree(Degree > 1) - 1)); 
+acc = mean(c(Degree > 1)); %average clustering coefficient
+
+%% Assortativity
+meanDegrees=zeros(StarSample,1);
+num=0;
+sumDegree=0;
+for i=1:StarSample
+    for c=1:StarSample
+        if (Adj(i,c)==1 && not(c == i))
+            sumDegree=sumDegree+Degree(c);
+            num=num+1;            
+        end
+    end
+    if num==0
+        meanDegrees(i)=0;
+    else
+        meanDegrees(i)=sumDegree/num;
+    end
+    num=0;
+    sumDegree=0;
+end
+
+figure
+plot(meanDegrees,Degree);
+
+
+%% EMBEDDING HERE
+%d = squareform(1-pdist(Adj,'cosine')) + eye(size(Adj,1)); DON'T USE THIS
+%d=distances(G);
+disp("Siamo qui");
+Y=cmdscale(Adj,3); %We want three dimensional coordinates in order to compare them with XYZ coordinates!
+%V=dfsearch(G,1);
+%plot(Y);
+figure
+scatter3(A(:,1),A(:,2),A(:,3));
+figure
+scatter3(Y(:,3),Y(:,2),Y(:,1));
+
+%% LAPLACIAN CREATED HERE
+%{
+K = diag(sum(Adj));
+L = K-Adj;
+[Vec Val] = eig(L);
+%}
